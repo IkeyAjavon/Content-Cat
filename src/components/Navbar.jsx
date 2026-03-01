@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 const links = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/content-log', label: 'Content Log', icon: FileText },
+  { to: '/log', label: 'Content Log', icon: FileText },
   { to: '/prompts', label: 'Prompts', icon: MessageSquare },
   { to: '/stats', label: 'Stats', icon: BarChart3 },
   { to: '/settings', label: 'Settings', icon: Settings },
