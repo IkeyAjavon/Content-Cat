@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Plus, X, Search, ArrowUpDown, Pencil, Filter } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useCatState, XP_REWARDS } from '../hooks/useCatState';
 
 const CONTENT_TYPES = ['Photography', 'Short-Form Video', 'Long-Form Video', 'Blog Post'];
 const PLATFORMS = ['Instagram', 'TikTok', 'YouTube', 'LinkedIn', 'Substack'];
@@ -235,6 +236,7 @@ function EntryFormModal({ entry, onSave, onClose }) {
 
 export default function ContentLog() {
   const [entries, setEntries] = useLocalStorage('content-cat-entries', []);
+  const { addXP } = useCatState();
   const [editing, setEditing] = useState(null);   // null | 'new' | entry object
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('');
@@ -249,11 +251,11 @@ export default function ContentLog() {
   function saveEntry(form) {
     if (editing && editing.id) {
       // Update existing
+      const oldEntry = entries.find((e) => e.id === editing.id);
       setEntries((prev) =>
         prev.map((e) => {
           if (e.id !== editing.id) return e;
           const updated = { ...e, ...form };
-          // Track postedAt
           if (form.status === 'Posted' && e.status !== 'Posted') {
             updated.postedAt = new Date().toISOString();
           } else if (form.status !== 'Posted') {
@@ -262,6 +264,11 @@ export default function ContentLog() {
           return updated;
         }),
       );
+      // XP for status changes
+      if (oldEntry) {
+        if (form.status === 'In Progress' && oldEntry.status !== 'In Progress') addXP(XP_REWARDS.IN_PROGRESS);
+        if (form.status === 'Posted' && oldEntry.status !== 'Posted') addXP(XP_REWARDS.POSTED);
+      }
     } else {
       // Create new
       const newEntry = {
@@ -271,6 +278,7 @@ export default function ContentLog() {
         postedAt: form.status === 'Posted' ? new Date().toISOString() : null,
       };
       setEntries((prev) => [newEntry, ...prev]);
+      addXP(XP_REWARDS.LOG_CONTENT);
     }
     setEditing(null);
   }
